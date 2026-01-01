@@ -1,8 +1,28 @@
 import pandas as pd
 from sklearn.model_selection import train_test_split
+import os
+
+def read_props(config_path=None):
+	if config_path is None:
+		config_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'config.properties'))
+	props = {}
+	try:
+		with open(config_path, 'r') as f:
+			for line in f:
+				line = line.strip()
+				if not line or line.startswith('#'):
+					continue
+				if '=' in line:
+					k, v = line.split('=', 1)
+					props[k.strip()] = v.strip()
+	except FileNotFoundError:
+		props = {}
+	return props
+
+props = read_props()
 
 # Load the balanced dataset (after SMOTE)
-df = pd.read_csv(r"C:\Users\suhas\Downloads\spam_assassin_smote.csv")
+df = pd.read_csv(props.get('spam_assassin_smote_csv', r"C:\Users\suhas\Downloads\spam_assassin_smote.csv"))
 
 # Separate features (X) and labels (y)
 X = df.drop(columns=["label"])  # Features (TF-IDF vectors)
@@ -12,10 +32,10 @@ y = df["label"]  # Target labels (spam or ham)
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42, stratify=y)
 
 # Save the split datasets for later use
-X_train.to_csv(r"C:\Users\suhas\Downloads\X_train.csv", index=False)
-X_test.to_csv(r"C:\Users\suhas\Downloads\X_test.csv", index=False)
-y_train.to_csv(r"C:\Users\suhas\Downloads\Y_train.csv", index=False)
-y_test.to_csv(r"C:\Users\suhas\Downloads\Y_test.csv", index=False)
+X_train.to_csv(props.get('X_train_csv', r"C:\Users\suhas\Downloads\X_train.csv"), index=False)
+X_test.to_csv(props.get('X_test_csv', r"C:\Users\suhas\Downloads\X_test.csv"), index=False)
+y_train.to_csv(props.get('Y_train_csv', r"C:\Users\suhas\Downloads\Y_train.csv"), index=False)
+y_test.to_csv(props.get('Y_test_csv', r"C:\Users\suhas\Downloads\Y_test.csv"), index=False)
 
 print("Data successfully split into training and testing sets.")
 print(f"Training set size: {X_train.shape[0]} samples")

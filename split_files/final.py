@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+import os
 import pandas as pd
 import numpy as np
 import re
@@ -18,8 +20,27 @@ nltk.download('wordnet')
 
 print("NLTK resources downloaded!")
 
+def read_props(config_path=None):
+    if config_path is None:
+        config_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'config.properties'))
+    props = {}
+    try:
+        with open(config_path, 'r') as f:
+            for line in f:
+                line = line.strip()
+                if not line or line.startswith('#'):
+                    continue
+                if '=' in line:
+                    k, v = line.split('=', 1)
+                    props[k.strip()] = v.strip()
+    except FileNotFoundError:
+        props = {}
+    return props
+
+props = read_props()
+
 # Load the raw dataset
-df = pd.read_csv(r"C:\Users\suhas\Downloads\spam_assassin.csv")
+df = pd.read_csv(props.get('spam_assassin_csv', r"C:\Users\suhas\Downloads\spam_assassin.csv"))
 
 # Rename columns if needed
 df.columns = ["email_text", "label"]  # First column is text, second is spam/ham
@@ -47,7 +68,7 @@ def clean_text(text):
 df["cleaned_text"] = df["email_text"].apply(clean_text)
 
 # Save the cleaned data for later use
-df[["cleaned_text", "label"]].to_csv(r"C:\Users\suhas\Downloads\spam_assassin_cleaned.csv", index=False)
+df[["cleaned_text", "label"]].to_csv(props.get('spam_assassin_cleaned_csv', r"C:\Users\suhas\Downloads\spam_assassin_cleaned.csv"), index=False)
 
 print("Dataset is cleaned and stored for further use!")
 
@@ -85,8 +106,8 @@ print(f"Recall: {recall:.4f}")
 print(f"F1-score: {f1:.4f}")
 
 # Save the trained model for later use
-joblib.dump(nb_model, r"C:\Users\suhas\Downloads\spam_classifier_nb_model.pkl")
-joblib.dump(tfidf_vectorizer, r"C:\Users\suhas\Downloads\tfidf_vectorizer.pkl")
+joblib.dump(nb_model, props.get('spam_classifier_model', r"C:\Users\suhas\Downloads\spam_classifier_nb_model.pkl"))
+joblib.dump(tfidf_vectorizer, props.get('tfidf_vectorizer', r"C:\Users\suhas\Downloads\tfidf_vectorizer.pkl"))
 
 print("\nTrained model saved as 'spam_classifier_nb_model.pkl'")
 print("TF-IDF vectorizer saved as 'tfidf_vectorizer.pkl'")

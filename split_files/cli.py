@@ -11,10 +11,30 @@ nltk.download('wordnet')
 
 # Load saved model and TF-IDF vectorizer
 model = joblib.load(r"C:\Users\suhas\Downloads\spam_classifier_nb_model.pkl")
-tfidf_vectorizer = joblib.load(r"C:\Users\suhas\Downloads\tfidf_vectorizer.pkl")
+# Load saved model and TF-IDF vectorizer (paths from config.properties or fall back to original)
+def read_props(config_path=None):
+    if config_path is None:
+        config_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'config.properties'))
+    props = {}
+    try:
+        with open(config_path, 'r') as f:
+            for line in f:
+                line = line.strip()
+                if not line or line.startswith('#'):
+                    continue
+                if '=' in line:
+                    k, v = line.split('=', 1)
+                    props[k.strip()] = v.strip()
+    except FileNotFoundError:
+        props = {}
+    return props
 
-# Initialize text preprocessing tools
-lemmatizer = WordNetLemmatizer()
+props = read_props()
+
+model_path = props.get('spam_classifier_model', r"C:\Users\suhas\Downloads\spam_classifier_nb_model.pkl")
+vectorizer_path = props.get('tfidf_vectorizer', r"C:\Users\suhas\Downloads\tfidf_vectorizer.pkl")
+model = joblib.load(model_path)
+tfidf_vectorizer = joblib.load(vectorizer_path)
 stop_words = set(stopwords.words("english"))
 
 def clean_text(text):

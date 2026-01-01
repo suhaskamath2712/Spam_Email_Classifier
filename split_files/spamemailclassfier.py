@@ -13,8 +13,30 @@ nltk.download('punkt_tab')
 nltk.download('stopwords')
 nltk.download('wordnet')
 
-# Load dataset
-df = pd.read_csv(r"C:\Users\suhas\Downloads\spam_assassin.csv")
+# -*- coding: utf-8 -*-
+import os
+
+def read_props(config_path=None):
+    if config_path is None:
+        config_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'config.properties'))
+    props = {}
+    try:
+        with open(config_path, 'r') as f:
+            for line in f:
+                line = line.strip()
+                if not line or line.startswith('#'):
+                    continue
+                if '=' in line:
+                    k, v = line.split('=', 1)
+                    props[k.strip()] = v.strip()
+    except FileNotFoundError:
+        props = {}
+    return props
+
+props = read_props()
+
+# Load dataset (path from config.properties or fallback)
+df = pd.read_csv(props.get('spam_assassin_csv', r"C:\Users\suhas\Downloads\spam_assassin.csv"))
 
 # Initialize stopwords and lemmatizer
 stop_words = set(stopwords.words("english"))
